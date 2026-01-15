@@ -2,29 +2,32 @@ import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import 'dotenv/config'
 
-const prisma = new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL
-})
+const prisma = new PrismaClient()
 
 const app = express()
 app.use(express.json())
 
-const user = []
 app.post('/usuarios', async (req, res) => {
-    
-  await prisma.user.create({
-    data: {
-        email: req.body.email,
-        name: req.body.name,
-        age: req.body.age
+    try {
+        const usuario = await prisma.user.create({
+            data: {
+                email: req.body.email,
+                name: req.body.name,
+                age: req.body.age
+            }
+        })
+        res.status(201).json(usuario)
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: 'Email já cadastrado' })
+        }
+        res.status(500).json({ error: 'Erro ao criar usuário' })
     }
-   })
-
-    res.send("ok, aqui deu certoooo")
 })
 
-app.get('/usuarios', (req, res) => {
-    res.status(200).json(user)
+app.get('/usuarios', async (req, res) => {
+    const usuarios = await prisma.user.findMany()
+    res.status(200).json(usuarios)
 })
 
 app.listen(3000, () => {
