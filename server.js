@@ -30,6 +30,29 @@ app.get('/usuarios', async (req, res) => {
     res.status(200).json(usuarios)
 })
 
+app.put('/usuarios/:id', async (req, res) => {
+
+    console.log(req)
+    try {
+        const usuario = await prisma.user.update({
+            where: {
+                id 
+            },
+            data: {
+                email: req.body.email,
+                name: req.body.name,
+                age: req.body.age
+            }
+        })
+        res.status(201).json(usuario)
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: 'Email já cadastrado' })
+        }
+        res.status(500).json({ error: 'Erro ao criar usuário' })
+    }
+})
+
 app.listen(3000, () => {
     console.log("servidor inciado")
 })
